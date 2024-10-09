@@ -80,7 +80,7 @@ const jokes = [
 ];
 app.get('/', (req, res) => {
     // res.json(jokes);
-    res.send('Hello World');
+    res.send('Hello World some cahnges');
 });
 app.get('/jokes', (req, res) => {
     res.send(jokes);
