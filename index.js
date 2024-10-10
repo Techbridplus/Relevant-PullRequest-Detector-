@@ -12,48 +12,48 @@ app.use(cors())
 app.use(bodyParser.json());
 
 // GitHub Webhook endpoint
-// app.post('/webhook', (req, res) => {
-//     const event = req.headers['x-github-event'];
-//     const signature = req.headers['x-hub-signature'];
+app.post('/webhook', (req, res) => {
+    const event = req.headers['x-github-event'];
+    const signature = req.headers['x-hub-signature'];
 
-//     // Verify the payload with your GitHub secret (optional, for security)
-//     // You can validate the request using HMAC if needed
+    // Verify the payload with your GitHub secret (optional, for security)
+    // You can validate the request using HMAC if needed
     
-//     // Parse the payload from GitHub
-//     const payload = req.body;
+    // Parse the payload from GitHub
+    const payload = req.body;
 
-//     console.log(`Received event: ${event}`);
-//     console.log(`Payload:`, payload);
+    console.log(`Received event: ${event}`);
+    console.log(`Payload:`, payload);
 
-//     // Handle the event (for example, if it's a pull request)
-//     if (event === 'pull_request') {
-//         const action = payload.action;
-//         const prTitle = payload.pull_request.title;
-//         const prBody = payload.pull_request.body;
+    // Handle the event (for example, if it's a pull request)
+    if (event === 'pull_request') {
+        const action = payload.action;
+        const prTitle = payload.pull_request.title;
+        const prBody = payload.pull_request.body;
 
-//         console.log(`Pull Request Action: ${action}`);
-//         console.log(`Title: ${prTitle}`);
-//         console.log(`Description: ${prBody}`);
+        console.log(`Pull Request Action: ${action}`);
+        console.log(`Title: ${prTitle}`);
+        console.log(`Description: ${prBody}`);
 
-//         // Perform your logic (e.g., send data to OpenAI API)
-//         const { Configuration, OpenAIApi } = require("openai");
+        // Perform your logic (e.g., send data to OpenAI API)
+        const { Configuration, OpenAIApi } = require("openai");
 
-//         const configuration = new Configuration({
-//           apiKey: process.env.OPENAI_API_KEY,
-//         });
-//         const openai = new OpenAIApi(configuration);
+        const configuration = new Configuration({
+          apiKey: process.env.OPENAI_API_KEY,
+        });
+        const openai = new OpenAIApi(configuration);
 
-//         const response = async()=>{
-//           return await openai.createCompletion({
-//           model: "text-davinci-003",
-//           prompt: "Analyze this code and tell me if it is relevant to a React project: " + codeChanges,
-//           max_tokens: 500,
-//         });}
-//     }
-//       console.log(response)
-//     // Respond to GitHub
-//     res.status(200).send('Webhook received');
-// });
+        const response = async()=>{
+          return await openai.createCompletion({
+          model: "text-davinci-003",
+          prompt: "Analyze this code and tell me if it is relevant to a React project: " + codeChanges,
+          max_tokens: 500,
+        });}
+    }
+      console.log(response)
+    // Respond to GitHub
+    res.status(200).send('Webhook received');
+});
 
 // Start the server
 const jokes = [
