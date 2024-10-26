@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
 // Webhook route for handling pull request events
-app.post("/webhook", (req, res) => {
+app.post("/", (req, res) => {
     const event = req.headers["x-github-event"];
     
     if (event === "pull_request") {
@@ -26,10 +26,10 @@ app.post("/webhook", (req, res) => {
         console.log("Sender:", pullRequestData.sender.login);
         console.log("Repository:", pullRequestData.repository.full_name);
     }
-    
+    console.log("hello world");
     res.status(200).send("Received the webhook!");
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on port http://localhost:${PORT}`);
 });
