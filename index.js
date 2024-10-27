@@ -25,6 +25,7 @@ app.post("/webhook", (req, res) => {
         console.log("Title:", pullRequestData.pull_request.title);
         console.log("Sender:", pullRequestData.sender.login);
         console.log("Repository:", pullRequestData.repository.full_name);
+        res.status(200).send("Received the pull request event!");
     }
     console.log("hello world");
     res.status(200).send("Received the webhook!");
