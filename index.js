@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 // Webhook route for handling pull request events
 app.post("/webhook", (req, res) => {
     const event = req.headers["x-github-event"];
-    
+    console.log("Received event:", event);
     if (event === "pull_request") {
         const pullRequestData = req.body;
         console.log("Pull Request Data:", pullRequestData);
