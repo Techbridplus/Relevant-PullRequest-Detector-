@@ -49,19 +49,19 @@ app.post('/webhook', async (req, res) => {
         console.log(`Pull Request #${pullRequest.number} is irrelevant.`);
   
         // Close the pull request if it’s irrelevant
-        // await axios.patch(
-        //   pullRequest.url,
-        //   { state: 'closed' },
-        //   githubAuthHeaders
-        // );
+        await axios.patch(
+          pullRequest.url,
+          { state: 'closed' },
+          githubAuthHeaders
+        );
   
         res.status(200).send('Pull request is irrelevant and has been closed.');
       }
-            await axios.patch(
-            pullRequest.url,
-            { state: 'closed' },
-            githubAuthHeaders
-            );
+            // await axios.patch(
+            // pullRequest.url,
+            // { state: 'closed' },
+            // githubAuthHeaders
+            // );
     } catch (error) {
       console.error('Error processing pull request:', error);
       res.status(500).send('Error analyzing pull request');
