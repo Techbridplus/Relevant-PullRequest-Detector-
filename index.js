@@ -5,9 +5,9 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv'
 dotenv.config()
 import cors from 'cors'
-const { Configuration, OpenAIApi } = require('openai');
+import OpenAIApi from 'openai';
 
-const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_API_KEY }));
+const openai = new OpenAIApi({ apiKey: process.env.OPENAI_API_KEY });
 // Middleware to authenticate with GitHub
 const githubAuthHeaders = {
     headers: {
