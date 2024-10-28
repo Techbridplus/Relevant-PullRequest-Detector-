@@ -5,9 +5,9 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv'
 dotenv.config()
 import cors from 'cors'
-import OpenAIApi from 'openai';
-
-const openai = new OpenAIApi({ apiKey: process.env.OPENAI_API_KEY });
+import {GoogleGenerativeAI}  from "@google/generative-ai";
+const genAI = new GoogleGenerativeAI(process.env.YOUR_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 // Middleware to authenticate with GitHub
 const githubAuthHeaders = {
     headers: {
@@ -27,16 +27,20 @@ app.post('/webhook', async (req, res) => {
     const pullRequest = req.body.pull_request;
     const prTitle = pullRequest.title;
     const prDescription = pullRequest.body;
+
+    console.log('Extracted pull request:', pullRequest);
+    console.log('Pull request title:', prTitle);
+    console.log('Pull request description:', prDescription);
   
     try {
       // Analyze pull request relevance with OpenAI
-      const completion = await openai.createCompletion({
-        model: 'text-davinci-003',
-        prompt: `Determine if this pull request is relevant:\nTitle: ${prTitle}\nDescription: ${prDescription}\n\nRespond with "relevant" or "irrelevant".`,
-        max_tokens: 500,
-      });
-  
-      const responseText = completion.data.choices[0].text.trim().toLowerCase();
+      const prompt = "Check if the pull request is relevant or irrelevant.our project is about making a nextjs project in we are making chat application and we want only that pull request which help on our project,respose only relevent or irrelavant Pull request title: " + prTitle + ". Pull request description: " + prDescription;
+
+      const result = await model.generateContent(prompt);
+      console.log(result.response.text());
+
+      const responseText = result.response.text().toLowerCase();
+      console.log('Response from Gemeni:', responseText);
   
       if (responseText === 'relevant') {
         console.log(`Pull Request #${pullRequest.number} is relevant.`);
@@ -57,9 +61,10 @@ app.post('/webhook', async (req, res) => {
       console.error('Error processing pull request:', error);
       res.status(500).send('Error analyzing pull request');
     }
+    console.log('Pull request processed.');
   });
   
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port http://localhost:${PORT}`);
   });

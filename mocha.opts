@@ -1,0 +1,5 @@
+--file: mocha.opts--
+--recursive
+--reporter spec
+--timeout 5000
+--file: mocha.opts--
