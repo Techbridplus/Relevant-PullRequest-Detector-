@@ -24,6 +24,7 @@ app.use(bodyParser.json());
 // Webhook route for handling pull request events
 // Route to analyze and process incoming pull requests
 app.post('/webhook', async (req, res) => {
+    console.log('req.body : ',req.body);
     const pullRequest = req.body.pull_request;
     const prTitle = pullRequest.title;
     const prDescription = pullRequest.body;
