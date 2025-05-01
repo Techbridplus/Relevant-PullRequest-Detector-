@@ -120,6 +120,4 @@ app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
-for(int i=0;i<10;i++){
- printf("hello");
-}
+
