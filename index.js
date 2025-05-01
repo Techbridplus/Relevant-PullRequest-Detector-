@@ -102,25 +102,38 @@ Only output this one line. Do not explain.
     const result = await model.generateContent(prompt);
     const responseText = result.response.text().toLowerCase().trim();
 
-    console.log('Gemini Response:', responseText.split(' ')[0]);
+    console.log('Gemini Response:', responseText);
+
+    const [classification, confidenceWithPercent] = responseText.split(' ');
+    const confidence = parseInt(confidenceWithPercent.replace(/[()%]/g, ''));
+    
 
 
-
-
-    if (responseText.split(' ')[0].trim() === 'relevant') {
+    if (confidence >= 85 && classification === 'relevant') {
       console.log(`Pull Request #${prNumber} is relevant.`);
       return res.status(200).send('Pull request is relevant and approved.');
-    } else {
+    }
+    
+    if (confidence >= 85 && classification === 'irrelevant') {
       console.log(`Pull Request #${prNumber} is irrelevant. Closing...`);
-
-      await axios.patch(
-        pullRequest.url,
-        { state: 'closed' },
-        githubAuthHeaders
-      );
-
+      await axios.patch(pullRequest.url, { state: 'closed' }, githubAuthHeaders);
       return res.status(200).send('Pull request is irrelevant and has been closed.');
     }
+    
+    if (confidence >= 60 && confidence < 85) {
+      console.log(`Pull Request #${prNumber} flagged with ${confidence}% confidence.`);
+    
+      await axios.post(
+        `${pullRequest.comments_url}`,
+        {
+          body: `⚠️ This pull request has been flagged for manual review.\n\n**Reason**: AI confidence is ${confidence}%, which is not high enough to auto-close or approve.\n\n**Classification**: ${classification}`,
+        },
+        githubAuthHeaders
+      );
+    
+      return res.status(200).send('Pull request flagged for manual review.');
+    }
+    
   } catch (err) {
     console.error('Error processing PR:', err.response?.data || err.message);
     return res.status(500).send('Error analyzing pull request.');
