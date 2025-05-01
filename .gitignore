@@ -1,1 +1,7 @@
 .env
+<<<<<<< HEAD
+node_modules
+dist
+=======
+gaurav 
+>>>>>>> 3d26596b3e2566dba0b48a25410f6a228efe65f0
