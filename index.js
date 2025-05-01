@@ -56,7 +56,7 @@ app.post('/webhook', async (req, res) => {
 
     console.log('Readme Summary:', ReadmeSummary);
 
-    // console.log('Files changed :', filesResponse.data);
+    console.log('Files changed :', filesResponse.data);
     const changedFiles = filesResponse.data.map(f => ({
       filename: f.filename,
       patch: f.patch
@@ -67,36 +67,47 @@ app.post('/webhook', async (req, res) => {
       .join('\n\n');
     
       const prompt = `
-      You are an assistant that reviews GitHub pull requests.
-      
-      Based on the project details provided in the README and the code changes in the pull request, determine whether this pull request is **relevant** to the project's purpose.
-      
-      ### Project README:
-      ${ReadmeSummary}
-      
-      ### Pull Request Title:
-      ${prTitle}
-      
-      ### Pull Request Description:
-      ${prDescription}
-      
-      ### Changed Files and Patches:
-      ${fileSummary}
-      
-      Please analyze whether the proposed changes contribute meaningfully to the project based on the README description.
-      
-      Respond with only one word: **"relevant"** or **"irrelevant"**.
-      `.trim();
+You are an AI reviewer for GitHub pull requests. Your job is to analyze if a pull request contributes meaningfully to the project, using the README and the code changes.
+
+### Project README:
+${ReadmeSummary}
+
+### Pull Request Title:
+${prTitle}
+
+### Pull Request Description:
+${prDescription}
+
+### Changed Files and Patches:
+${fileSummary}
+
+Determine whether this pull request is relevant to the project's purpose based on the README content and the nature of the changes.
+
+Important Instructions:
+- If you are at least 85% confident that the pull request is irrelevant to the project, then classify it as **"irrelevant"**.
+- Otherwise, classify it as **"relevant"**.
+- Respond with the classification followed by your confidence percentage.
+
+Example format:
+relevant (92%)
+or
+irrelevant (87%)
+
+Only output this one line. Do not explain.
+`.trim();
       
     
-    console.log('Prompt:', prompt);
+    // console.log('Prompt:', prompt);
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text().toLowerCase().trim();
 
-    // console.log('Gemini Response:', responseText);
+    console.log('Gemini Response:', responseText.split(' ')[0]);
 
-    if (responseText === 'relevant') {
+
+
+
+    if (responseText.split(' ')[0].trim() === 'relevant') {
       console.log(`Pull Request #${prNumber} is relevant.`);
       return res.status(200).send('Pull request is relevant and approved.');
     } else {
