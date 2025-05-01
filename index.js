@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import cors from 'cors';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+console.log("hello");
 
 const genAI = new GoogleGenerativeAI(process.env.YOUR_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
