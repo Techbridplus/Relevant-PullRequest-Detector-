@@ -46,18 +46,25 @@ app.post('/webhook', async (req, res) => {
       githubAuthHeaders
     );
     console.log('Files changed :', filesResponse.data);
-    const changedFiles = filesResponse.data.map(f => f.filename);
-    console.log('Files changed in PR:', changedFiles);
-
-    // Use Gemini to assess relevance
+    const changedFiles = filesResponse.data.map(f => ({
+      filename: f.filename,
+      patch: f.patch
+    }));
+    
+    const fileSummary = changedFiles
+      .map(f => `File: ${f.filename}\nPatch:\n${f.patch}`)
+      .join('\n\n');
+    
     const prompt = `
-Check if the following pull request is relevant or irrelevant to a Next.js chat application project.
-Title: ${prTitle}
-Description: ${prDescription}
-Changed Files: ${changedFiles.join(', ')}
-
-Only reply with "relevant" or "irrelevant".
+    Check if the following pull request is relevant or irrelevant to this project.
+    Our project is a chat application built using Next.js.
+    
+    Title: ${prTitle}
+    Description: ${prDescription}
+    Changes Summary (filename,patch): ${fileSummary}
+    Only reply with "relevant" or "irrelevant".
     `.trim();
+    
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text().toLowerCase().trim();
