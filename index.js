@@ -85,8 +85,6 @@ ${fileSummary}
 Determine whether this pull request is relevant to the project's purpose based on the README content and the nature of the changes.
 
 Important Instructions:
-- If you are at least 85% confident that the pull request is irrelevant to the project, then classify it as **"irrelevant"**.
-- Otherwise, classify it as **"relevant"**.
 - Respond with the classification followed by your confidence percentage.
 
 Example format:
@@ -110,18 +108,20 @@ Only output this one line. Do not explain.
     
 
 
-    if (confidence >= 85 && classification === 'relevant') {
-      console.log(`Pull Request #${prNumber} is relevant.`);
-      return res.status(200).send('Pull request is relevant and approved.');
-    }
+   
     
     if (confidence >= 85 && classification === 'irrelevant') {
       console.log(`Pull Request #${prNumber} is irrelevant. Closing...`);
       await axios.patch(pullRequest.url, { state: 'closed' }, githubAuthHeaders);
       return res.status(200).send('Pull request is irrelevant and has been closed.');
     }
+
+     else if ( classification === 'relevant') {
+      console.log(`Pull Request #${prNumber} is relevant.`);
+      return res.status(200).send('Pull request is relevant and approved.');
+    }
     
-    if (confidence >= 60 && confidence < 85) {
+    else  {
       console.log(`Pull Request #${prNumber} flagged with ${confidence}% confidence.`);
     
       await axios.post(
