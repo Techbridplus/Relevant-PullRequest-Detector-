@@ -36,8 +36,8 @@ app.post('/webhook', async (req, res) => {
   const repo = event.repository.name;
   const owner = event.repository.owner.login;
 
-  console.log('PR Title:', prTitle);
-  console.log('PR Description:', prDescription);
+  // console.log('PR Title:', prTitle);
+  // console.log('PR Description:', prDescription);
 
   try {
     // Fetch list of changed files from the PR
@@ -45,7 +45,18 @@ app.post('/webhook', async (req, res) => {
       `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/files`,
       githubAuthHeaders
     );
-    console.log('Files changed :', filesResponse.data);
+    const readmeResponse = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/readme`,
+      githubAuthHeaders
+    );
+    
+    // Decode base64 to UTF-8 text
+    const ReadmeSummary = Buffer.from(readmeResponse.data.content, 'base64').toString('utf-8');
+    
+
+    console.log('Readme Summary:', ReadmeSummary);
+
+    // console.log('Files changed :', filesResponse.data);
     const changedFiles = filesResponse.data.map(f => ({
       filename: f.filename,
       patch: f.patch
@@ -55,21 +66,35 @@ app.post('/webhook', async (req, res) => {
       .map(f => `File: ${f.filename}\nPatch:\n${f.patch}`)
       .join('\n\n');
     
-    const prompt = `
-    Check if the following pull request is relevant or irrelevant to this project.
-    Our project is a chat application built using Next.js.
+      const prompt = `
+      You are an assistant that reviews GitHub pull requests.
+      
+      Based on the project details provided in the README and the code changes in the pull request, determine whether this pull request is **relevant** to the project's purpose.
+      
+      ### Project README:
+      ${ReadmeSummary}
+      
+      ### Pull Request Title:
+      ${prTitle}
+      
+      ### Pull Request Description:
+      ${prDescription}
+      
+      ### Changed Files and Patches:
+      ${fileSummary}
+      
+      Please analyze whether the proposed changes contribute meaningfully to the project based on the README description.
+      
+      Respond with only one word: **"relevant"** or **"irrelevant"**.
+      `.trim();
+      
     
-    Title: ${prTitle}
-    Description: ${prDescription}
-    Changes Summary (filename,patch): ${fileSummary}
-    Only reply with "relevant" or "irrelevant".
-    `.trim();
-    
+    console.log('Prompt:', prompt);
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text().toLowerCase().trim();
 
-    console.log('Gemini Response:', responseText);
+    // console.log('Gemini Response:', responseText);
 
     if (responseText === 'relevant') {
       console.log(`Pull Request #${prNumber} is relevant.`);
