@@ -1,76 +1,89 @@
-
 import axios from 'axios';
 import express from 'express';
 import bodyParser from 'body-parser';
-import dotenv from 'dotenv'
-dotenv.config()
-import cors from 'cors'
-import {GoogleGenerativeAI}  from "@google/generative-ai";
+import dotenv from 'dotenv';
+dotenv.config();
+import cors from 'cors';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 const genAI = new GoogleGenerativeAI(process.env.YOUR_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-// Middleware to authenticate with GitHub
-const githubAuthHeaders = {
-    headers: {
-      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github.v3+json',
-    },
-  };
+
+const PORT = process.env.PORT || 3000;
+
 const app = express();
 app.use(cors());
-
-// Middleware to parse JSON from GitHub's webhook
 app.use(bodyParser.json());
 
-// Webhook route for handling pull request events
-// Route to analyze and process incoming pull requests
+const githubAuthHeaders = {
+  headers: {
+    Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github.v3+json',
+  },
+};
+
 app.post('/webhook', async (req, res) => {
-    console.log('req.body : ',req.body);
-    const pullRequest = req.body.pull_request;
-    const prTitle = pullRequest.title;
-    const prDescription = pullRequest.body;
+  const event = req.body;
 
-    console.log('Extracted pull request:', pullRequest);
-    console.log('Pull request title:', prTitle);
-    console.log('Pull request description:', prDescription);
-  
-    try {
-      // Analyze pull request relevance with OpenAI
-      const prompt = "Check if the pull request is relevant or irrelevant.our project is about making a nextjs project in we are making chat application and we want only that pull request which help on our project,respose only relevent or irrelavant Pull request title: " + prTitle + ". Pull request description: " + prDescription;
+  if (!event.pull_request) {
+    return res.status(200).send('Not a pull request event.');
+  }
 
-      const result = await model.generateContent(prompt);
-      console.log(result.response.text());
+  const pullRequest = event.pull_request;
+  const prTitle = pullRequest.title;
+  const prDescription = pullRequest.body;
+  const prNumber = pullRequest.number;
+  const repo = event.repository.name;
+  const owner = event.repository.owner.login;
 
-      const responseText = result.response.text().toLowerCase();
-      console.log('Response from Gemeni:', responseText);
-  
-      if (responseText === 'relevant') {
-        console.log(`Pull Request #${pullRequest.number} is relevant.`);
-        res.status(200).send('Pull request is relevant and approved.');
-      } else {
-        console.log(`Pull Request #${pullRequest.number} is irrelevant.`);
-  
-        // Close the pull request if it’s irrelevant
-        await axios.patch(
-          pullRequest.url,
-          { state: 'closed' },
-          githubAuthHeaders
-        );
-  
-        res.status(200).send('Pull request is irrelevant and has been closed.');
-      }
-            // await axios.patch(
-            // pullRequest.url,
-            // { state: 'closed' },
-            // githubAuthHeaders
-            // );
-    } catch (error) {
-      console.error('Error processing pull request:', error);
-      res.status(500).send('Error analyzing pull request');
+  console.log('PR Title:', prTitle);
+  console.log('PR Description:', prDescription);
+
+  try {
+    // Fetch list of changed files from the PR
+    const filesResponse = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/files`,
+      githubAuthHeaders
+    );
+    console.log('Files changed :', filesResponse.data);
+    const changedFiles = filesResponse.data.map(f => f.filename);
+    console.log('Files changed in PR:', changedFiles);
+
+    // Use Gemini to assess relevance
+    const prompt = `
+Check if the following pull request is relevant or irrelevant to a Next.js chat application project.
+Title: ${prTitle}
+Description: ${prDescription}
+Changed Files: ${changedFiles.join(', ')}
+
+Only reply with "relevant" or "irrelevant".
+    `.trim();
+
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text().toLowerCase().trim();
+
+    console.log('Gemini Response:', responseText);
+
+    if (responseText === 'relevant') {
+      console.log(`Pull Request #${prNumber} is relevant.`);
+      return res.status(200).send('Pull request is relevant and approved.');
+    } else {
+      console.log(`Pull Request #${prNumber} is irrelevant. Closing...`);
+
+      await axios.patch(
+        pullRequest.url,
+        { state: 'closed' },
+        githubAuthHeaders
+      );
+
+      return res.status(200).send('Pull request is irrelevant and has been closed.');
     }
-    console.log('Pull request processed.');
-  });
-  
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port http://localhost:${PORT}`);
-  });
+  } catch (err) {
+    console.error('Error processing PR:', err.response?.data || err.message);
+    return res.status(500).send('Error analyzing pull request.');
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
