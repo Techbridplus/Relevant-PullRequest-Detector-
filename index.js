@@ -67,7 +67,7 @@ app.post('/webhook', async (req, res) => {
       .join('\n\n');
     
       const prompt = `
-      You are an AI reviewer for GitHub pull requests. Your job is to analyze whether a pull request contributes meaningfully to the project based on the README and the code changes.
+      You are an AI reviewer for GitHub pull requests. Your job is to analyze whether a pull request contributes meaningfully to the project based on the README, original repository file code and the pull request code change.
       
       ### Project README:
       ${ReadmeSummary}
@@ -84,42 +84,10 @@ app.post('/webhook', async (req, res) => {
       Determine whether this pull request is likely to be relevant to the project's purpose based on the README and the nature of the changes.
       
       ### Important Instructions:
-      - If you believe there is a 50% or greater chance that the pull request contributes meaningfully, classify it as *relevant*.
-      - If the pull request is totally unrelated to the project goal (e.g., meaningless file edits, test PRs, dummy changes, comments, questions), classify it as *irrelevant*.
-      - If the relevance is uncertain but possibly useful, still classify it as *relevant*.
+      - If the pull request is totally unrelated to the project goal (e.g., meaningless file edits, test PRs, dummy changes, comments, questions), classify it as *irrelevant* otherwise *relevant*.
       - Do not explain your reasoning. Just output the classification and confidence.
       
-      ### Examples:
-      
-      Example 1:
-      Title: "Fix typo in README"
-      Description: "Corrected 'Intialization' to 'Initialization'."
-      Changed Files: README.md
-      Classification: irrelevant (90%)
-      
-      Example 2:
-      Title: "Added random file"
-      Description: "This is a test file."
-      Changed Files: test.txt
-      Classification: irrelevant (96%)
-      
-      Example 3:
-      Title: "Add new API endpoint for user registration"
-      Description: "Implements user registration flow"
-      Changed Files: src/api/register.js, docs/api.md
-      Classification: relevant (92%)
-      
-      Example 4:
-      Title: "Update license year"
-      Description: "Changed 2022 to 2024"
-      Changed Files: LICENSE
-      Classification: irrelevent (60%)
-      
-      Example 5:
-      Title: "Test commit"
-      Description: "Just testing"
-      Changed Files: test.js with console.log('test')
-      Classification: irrelevant (88%)
+    
       
       ### Response Format:
       relevant (92%)
