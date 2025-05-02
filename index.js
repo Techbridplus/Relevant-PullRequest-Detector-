@@ -54,9 +54,9 @@ app.post('/webhook', async (req, res) => {
     const ReadmeSummary = Buffer.from(readmeResponse.data.content, 'base64').toString('utf-8');
     
 
-    console.log('Readme Summary:', ReadmeSummary);
+    console.log('Readme response:', readmeResponse);
 
-    console.log('Files changed :', filesResponse.data);
+    console.log('Files response :', filesResponse);
     const changedFiles = filesResponse.data.map(f => ({
       filename: f.filename,
       patch: f.patch
