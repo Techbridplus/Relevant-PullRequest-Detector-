@@ -67,35 +67,32 @@ app.post('/webhook', async (req, res) => {
       .join('\n\n');
     
       const prompt = `
-      You are an AI reviewer for GitHub pull requests. Your job is to analyze whether a pull request contributes meaningfully to the project based on the Project README, changed files and pull request title and description.
-      
-      ### Project README:
-      ${ReadmeSummary}
-      
-      ### Pull Request Title:
-      ${prTitle}
-      
-      ### Pull Request Description:
-      ${prDescription}
-      
-      ### Changed Files and Patches:
-      ${fileSummary}
-      
-      Determine whether this pull request is likely to be relevant to the project's purpose based on the README and the nature of the changes.
-      
-      ### Important Instructions:
-      - If the pull request is totally unrelated to the project goal (e.g., meaningless file edits, test PRs, dummy changes, comments, questions), classify it as *irrelevant* otherwise *relevant*.
-      - Do not explain your reasoning. Just output the classification and confidence.
-      
-    
-      
-      ### Response Format:
-      relevant (92%)
-      or
-      irrelevant (41%)
-      
-      Only output this one line. Do not explain.
-      `.trim();
+You are an AI reviewer for GitHub pull requests. Your job is to analyze if a pull request contributes meaningfully to the project, using the README and the code changes.
+
+### Project README:
+${ReadmeSummary}
+
+### Pull Request Title:
+${prTitle}
+
+### Pull Request Description:
+${prDescription}
+
+### Changed Files and Patches:
+${fileSummary}
+
+Determine whether this pull request is relevant to the project's purpose based on the README content and the nature of the changes.
+
+Important Instructions:
+- Respond with the classification followed by your confidence percentage.
+
+Example format:
+relevant (92%)
+or
+irrelevant (87%)
+
+Only output this one line. Do not explain.
+`.trim();
       
     
     // console.log('Prompt:', prompt);
@@ -146,5 +143,4 @@ app.post('/webhook', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
 
