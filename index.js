@@ -67,7 +67,7 @@ app.post('/webhook', async (req, res) => {
       .join('\n\n');
     
       const prompt = `
-      You are an AI reviewer for GitHub pull requests. Your job is to analyze whether a pull request contributes meaningfully to the project based on the README, original repository file code and the pull request code change.
+      You are an AI reviewer for GitHub pull requests. Your job is to analyze whether a pull request contributes meaningfully to the project based on the Project README, changed files and pull request title and description.
       
       ### Project README:
       ${ReadmeSummary}
