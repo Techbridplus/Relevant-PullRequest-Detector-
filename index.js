@@ -85,7 +85,7 @@ app.post('/webhook', async (req, res) => {
       
       ### Important Instructions:
       - If you believe there is a 50% or greater chance that the pull request contributes meaningfully, classify it as **relevant**.
-      - If the pull request is totally unrelated to the project goal (e.g., meaningless file edits, test PRs, dummy changes), classify it as **irrelevant**.
+      - If the pull request is totally unrelated to the project goal (e.g., meaningless file edits, test PRs, dummy changes, comments, questions), classify it as **irrelevant**.
       - If the relevance is uncertain but possibly useful, still classify it as **relevant**.
       - Do not explain your reasoning. Just output the classification and confidence.
       
